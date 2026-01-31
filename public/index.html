@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Connect Facebook</title>
+    <script
+      async
+      defer
+      crossorigin="anonymous"
+      src="https://connect.facebook.net/en_US/sdk.js"
+    ></script>
+    <script src="src/facebook-login.js"></script>
+  </head>
+  <body>
+    <h2>Đăng nhập với Facebook</h2>
+    <fb:login-button
+      scope="public_profile,email,pages_show_list,pages_manage_posts"
+      onlogin="checkLoginState();"
+    >
+    </fb:login-button>
+
+    <div id="status"></div>
+  </body>
+</html>
