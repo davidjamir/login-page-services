@@ -4,6 +4,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing code" });
   }
 
+  console.log(code);
   const tokenRes = await fetch(
     "https://graph.facebook.com/v24.0/oauth/access_token?" +
       new URLSearchParams({
@@ -16,6 +17,7 @@ export default async function handler(req, res) {
 
   const tokenData = await tokenRes.json();
 
+  console.log(tokenData);
   // 👉 tạm thời trả ra để debug
   res.json({
     step: "user_access_token",

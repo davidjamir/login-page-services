@@ -1,24 +1,825 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Connect Facebook</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Facebook Login Integration</title>
+    <link rel="icon" href="favicon.ico" sizes="32x32" type="image/png" />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --text: #0f172a; /* slate-900 */
+        --muted: #475569; /* slate-600 */
+        --line: rgba(15, 23, 42, 0.12);
+        --card: rgba(255, 255, 255, 0.85);
+        --shadow: 0 14px 40px rgba(2, 6, 23, 0.1);
+        --radius: 18px;
+
+        --primary: #111827; /* gray-900 */
+        --primary2: #0f172a; /* slate-900 */
+        --soft: rgba(15, 23, 42, 0.06);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        color: var(--text);
+        font:
+          14px/1.5 system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Helvetica,
+          Arial,
+          "Apple Color Emoji",
+          "Segoe UI Emoji";
+        background: var(--bg);
+      }
+
+      /* subtle background effects */
+      .bgfx {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+        background:
+          radial-gradient(
+            900px 520px at 15% 10%,
+            rgba(37, 99, 235, 0.12) 0%,
+            rgba(37, 99, 235, 0) 55%
+          ),
+          radial-gradient(
+            800px 520px at 85% 15%,
+            rgba(16, 185, 129, 0.12) 0%,
+            rgba(16, 185, 129, 0) 55%
+          ),
+          radial-gradient(
+            700px 520px at 40% 95%,
+            rgba(236, 72, 153, 0.1) 0%,
+            rgba(236, 72, 153, 0) 55%
+          );
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .container {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 34px 18px 46px;
+      }
+
+      /* Top bar */
+      .topbar {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+
+      .brand {
+        display: inline-flex;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 999px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .brand .logo {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(
+          180deg,
+          rgba(15, 23, 42, 1),
+          rgba(17, 24, 39, 1)
+        );
+        box-shadow: 0 12px 24px rgba(2, 6, 23, 0.22);
+      }
+      .brand .logo svg {
+        display: block;
+      }
+
+      .brand .name {
+        display: grid;
+        gap: 1px;
+      }
+      .brand .name b {
+        font-size: 14px;
+        letter-spacing: 0.2px;
+      }
+      .brand .name span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .pill {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        padding: 7px 10px;
+        border-radius: 999px;
+        border: 0px solid var(--line);
+        background: rgba(0, 0, 0, 0);;
+        backdrop-filter: blur(10px);
+      }
+
+      /* Hero */
+      .hero {
+        padding: 22px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .hero h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        letter-spacing: -0.3px;
+      }
+      .hero p {
+        margin: 0 0 18px;
+        color: var(--muted);
+        max-width: 760px;
+      }
+
+      /* Search */
+      .search-wrap {
+        margin: 14px auto 0;
+        max-width: 760px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .input {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(15, 23, 42, 0.14);
+        background: rgba(255, 255, 255, 0.85);
+      }
+      .input svg {
+        flex: 0 0 auto;
+        opacity: 0.9;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        border: 0;
+        outline: none;
+        background: transparent;
+        color: var(--text);
+        font-size: 15px;
+      }
+      input::placeholder {
+        color: rgba(71, 85, 105, 0.8);
+      }
+
+      .btn {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(15, 23, 42, 0.16);
+        background: linear-gradient(
+          180deg,
+          rgba(15, 23, 42, 1),
+          rgba(17, 24, 39, 1)
+        );
+        color: #fff;
+        cursor: pointer;
+        user-select: none;
+        transition:
+          transform 0.05s ease,
+          filter 0.15s ease;
+        font-weight: 700;
+        white-space: nowrap;
+        box-shadow: 0 12px 26px rgba(2, 6, 23, 0.18);
+      }
+      .btn:hover {
+        filter: brightness(1.05);
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+      .btn svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      /* Grid sections */
+      .grid {
+        display: grid;
+        gap: 14px;
+        margin-top: 16px;
+        grid-template-columns: 1.25fr 0.75fr;
+      }
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .search-wrap {
+          grid-template-columns: 1fr;
+        }
+        .btn {
+          width: 100%;
+        }
+      }
+
+      .card {
+        padding: 18px;
+        border-radius: var(--radius);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.75);
+        box-shadow: 0 10px 28px rgba(2, 6, 23, 0.08);
+        backdrop-filter: blur(10px);
+      }
+
+      .card h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+        letter-spacing: 0.1px;
+      }
+
+      .card p,
+      .card li {
+        color: var(--muted);
+      }
+
+      .card code {
+        color: var(--primary2);
+        background: var(--soft);
+        border: 1px solid rgba(15, 23, 42, 0.12);
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", monospace;
+        font-size: 12px;
+      }
+
+      .list {
+        margin: 10px 0 0;
+        padding-left: 18px;
+      }
+      .list li {
+        margin: 7px 0;
+      }
+
+      /* Table */
+    .table{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+    }
+    .table th,
+    .table td{
+      padding:12px 16px;
+      border-bottom:1px solid #eee;
+      vertical-align:middle;
+      text-align: center;
+    }
+    .table th{
+      color:#333;
+      font-weight:800;
+      background:#fafafa;
+    }
+    .table th:nth-child(1), .table td:nth-child(1){ width:60px; }
+    .nowrap{white-space:nowrap}
+    .muted{color:#777}
+    .center{text-align:center}
+
+    /* Subdomain/Feed cells with copy icon */
+    .token-cell{ text-align:center; }
+
+    .sub-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      width:100%;
+      min-height:40px;
+    }
+    .sub-text{
+      display:block;
+      font-size:14px;
+      font-weight:650;
+      color:#111;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .row-hover{
+      transition: background-color .15s ease;
+    }
+
+    .row-hover:hover{
+      background: rgba(0,0,0,.02);
+      box-shadow: inset 0 1px 0 rgba(0,0,0,.04), inset 0 -1px 0 rgba(0,0,0,.04);
+    }
+
+    .inline-copy{
+        display:inline-flex;
+        align-items:center;
+        justify-content: center;
+        gap:8px;              /* icon close to text */
+        max-width:100%;
+    }
+
+        /* subdomain cell: left */
+    .cell-text{
+        display:inline-block;
+        font-size:14px;
+        align-items:center;
+        justify-content:center;
+    }
+
+    /* keep icon compact */
+    .copy-mini{
+    width:32px;
+    height:32px;
+    border-radius:10px;
+    border:0.1px solid rgba(0, 0, 0, 0.2);
+    background:transparent;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    flex:0 0 auto;
+    }
+    .copy-mini svg{ width:14px; height:14px; fill:#9a9a9a; }
+    .copy-mini:hover{ background:#f6f6f6; border-color:#e6e6e6; }
+
+    /* Toast: premium green + subtle glow */
+    .toast{
+    position:absolute;           /* key: không fixed nữa */
+    z-index:9999;
+    top: 10vh;  /* Vị trí từ trên cùng */
+    right: 2vw;
+    background:#f6f6f6;
+    color:#1f8a5b;
+    border:1px solid #e6e6e6;
+    padding:8px 10px;
+    border-radius:999px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .12s ease;
+    font-weight:600;
+    font-size:12px;
+    box-shadow:0 10px 24px rgba(0,0,0,.08);
+    white-space:nowrap;
+    }
+    .toast.show {
+    opacity: 1;
+    visibility: visible;
+    }
+
+    .toast.error {
+    background: #f44336; /* Màu đỏ cho lỗi */
+    }
+
+    .toast.success {
+    background: #4CAF50; /* Màu xanh lá cho thành công */
+    }
+
+    footer {
+        margin-top: 18px;
+        color: rgba(71, 85, 105, 0.9);
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .kbd {
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", monospace;
+        font-size: 12px;
+        padding: 2px 7px;
+        border-radius: 9px;
+        border: 1px solid rgba(15, 23, 42, 0.15);
+        background: rgba(255, 255, 255, 0.75);
+    }
+
+    /* Add to the existing CSS */
+
+    .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 20px;
+    }
+
+    .user-token-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;  /* Align user token to the left */
+    text-align: center;
+    gap: 16px;
+    }
+
+    #savePageTokenButton {
+    padding: 8px 16px;
+    font-size: 14px;
+    background-color: #3b82f6;  /* Button color */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    }
+
+    #savePageTokenButton:hover {
+    background-color: #2563eb; /* Darker button color on hover */
+    }
+
+    </style>
+  </head>
+
+  <body>
+    <div class="bgfx" aria-hidden="true"></div>
+
+    <div class="container">
+      <div class="topbar">
+        <a class="brand" href="/">
+          <span
+            class="logo"
+            aria-hidden="true"
+            title="Facebook Login Integration"
+          >
+           <img src="favicon.ico" alt="Facebook Login Integration Logo" width="36" height="36" style="border-radius: 12px; " />
+            </svg>
+          </span>
+          <span class="name">
+            <b>Facebook Login Integration</b>
+            <span>login → preview pages → saved</span>
+          </span>
+        </a>
+
+        <div>
+        </div>
+        <span class="pill" title="Button Login">
+            <div
+            class="fb-login-button"
+            data-max-rows="1"
+            data-size="large"
+            data-button-type="continue_with"
+            data-use-continue-as="true"
+            data-auto-logout-link="false"
+            data-onlogin="checkLoginState()"
+            data-scope="public_profile,email,pages_show_list,pages_read_engagement,pages_read_user_content,pages_manage_posts,pages_manage_engagement,business_management"
+            ></div>
+        </span>
+      </div>
+
+        <div id="toast" class="toast" aria-live="polite"></div>
+
+      <section class="hero">
+        <h2 id="status"></h2>
+        <div id="info">
+        <div class="row">
+            <div class="user-token-wrapper">
+            <h4>User token:</h4>
+            <div id="userTokenDisplay">No token available</div>
+            </div>
+            <button id="savePageTokenButton" style="display:none">Save Page Token</button>
+        </div>
+        </div>
+        <div class="card">
+            <div class="card-head">
+            <div class="card-title">Pages token</div>
+            <div class="card-sub muted"></div>
+            </div>
+            <table class="table" aria-label="RSS table">
+                <thead>
+                    <tr>
+                    <th class="nowrap">#</th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Token</th>
+                    </tr>
+                </thead>
+            <tbody id="page-list"></tbody>
+            </table>
+        </div>
+      </section>
+
+      <footer>
+        © Facebook Login Integration — Designed for smooth experience
+      </footer>
+    </div>
+
+    <!-- Load the Facebook SDK -->
     <script
       async
       defer
       crossorigin="anonymous"
       src="https://connect.facebook.net/en_US/sdk.js"
     ></script>
-    <script src="src/facebook-login.js"></script>
-  </head>
-  <body>
-    <h2>Đăng nhập với Facebook</h2>
-    <fb:login-button
-      scope="public_profile,email,pages_show_list,pages_manage_posts"
-      onlogin="checkLoginState();"
-    >
-    </fb:login-button>
 
-    <div id="status"></div>
+    <script>
+      // Initialize Facebook SDK
+      window.fbAsyncInit = function () {
+        FB.init({
+          appId: "1481906710308580", // Thay thế bằng App ID từ Facebook Developer Console
+          cookie: true, // Enable cookies for session tracking
+          xfbml: true, // Parse social plugins
+          version: "v24.0", // Specify the Graph API version
+        });
+
+        // Check login status on page load
+        FB.getLoginStatus(function (response) {
+          statusChangeCallback(response); // Handle login status
+        });
+      };
+
+      // Callback function to handle login status
+      function statusChangeCallback(response) {
+        console.log("statusChangeCallback");
+
+        if (response.status === "connected") {
+          // User is logged in
+          document.getElementById("status").innerHTML =
+            "Logged in successfully!";
+          testAPI(response.authResponse.accessToken); // Fetch user information after successful login
+        } else {
+          // User is not logged in
+          document.getElementById("status").innerHTML =
+            "Please log into this webpage.";
+        }
+      }
+
+      // Called when the login button is clicked, checks the login status
+      function checkLoginState() {
+        FB.getLoginStatus(function (response) {
+          statusChangeCallback(response); // Pass the response to the callback function
+        });
+      }
+
+      // Function to fetch user data from the Facebook API
+      function testAPI(accessToken) {
+        console.log("Fetching user information....");
+
+        // Fetch user data
+        FB.api("/me", { access_token: accessToken }, function (response) {
+          console.log("Successful login for: " + response.name);
+          document.getElementById("status").innerHTML =
+            "Thanks for logging in, " + response.name + "!";
+          // Here you can call additional functions to work with page tokens or other Facebook data
+          extendUserToken(accessToken, response.name); // Get page tokens for further actions
+        });
+      }
+
+       function extendUserToken(shortTermToken, username) {
+        const appId = "1481906710308580"; // App ID của bạn
+        const appSecret = "b38f9a7204bd9cca0732af482df67231"; // App secret của bạn
+        
+        FB.api(
+            `/oauth/access_token`,
+            {
+            grant_type: 'fb_exchange_token',
+            client_id: appId,
+            client_secret: appSecret,
+            fb_exchange_token: shortTermToken
+            },
+            function(response) {
+            if (response && !response.error) {
+                const longTermUserToken = response.access_token; // User token dài hạn
+                document.getElementById("userTokenDisplay").outerHTML = `<div class="user-token-wrapper"><div>${shortenToken(longTermUserToken)}</div>
+                <button class="copy-mini copy-btn" type="button" data-copy="${longTermUserToken}" title="Copy">
+                    ${copySvg()}
+                </button></div>
+                `;
+                // Hiện nút lưu page token khi có token
+                document.getElementById("savePageTokenButton").style.display = "inline-block";
+                // Sau khi có token dài hạn của người dùng, có thể lấy page token dài hạn
+                getPageTokens(longTermUserToken, username);
+            } else {
+                console.error("Error exchanging for long-term user token:", response.error);
+            }
+            }
+        );
+        }
+
+      function shortenToken(token) {
+        // Kiểm tra nếu token có đủ dài (tối thiểu 6 ký tự)
+        if (token && token.length > 6) {
+            const firstPart = token.slice(0, 5); // Lấy 3 ký tự đầu
+            const lastPart = token.slice(-5);    // Lấy 3 ký tự cuối
+            return `${firstPart}...${lastPart}`; // Kết hợp và thêm "..."
+        } else {
+            // Nếu token quá ngắn, trả về nguyên vẹn token
+            return token;
+        }
+        }
+
+        function copySvg() {
+        // simple "copy" icon
+        return `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2V7zm2 0v10h8V7h-8z"></path>
+            <path d="M6 17a1 1 0 0 1-1-1V6a2 2 0 0 1 2-2h10a1 1 0 1 1 0 2H7v10a1 1 0 0 1-1 1z"></path>
+            </svg>
+        `;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.classList.add('toast');
+            if (type === 'error') {
+                toast.classList.add('error');
+            }
+
+            toast.innerText = message;
+
+            document.body.appendChild(toast);
+
+            // Show toast
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300); // Wait for animation before removing
+            }, 3000);
+        }
+
+        // Hàm lưu page token vào API của bạn
+        function savePageToken(payload) {
+        const apiUrl = "/api/saved-page-tokens"; // Relative URL
+
+        // Gửi yêu cầu POST đến API backend (relative URL)
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Xử lý phản hồi từ API
+            if (data.success) {
+            showToast("Page token saved successfully!", "success");
+            } else {
+                showToast("Failed to save page token.", "error");
+            }
+        })
+        .catch(error => {
+            console.error("Error saving page token:", error);
+            showToast("An error occurred while saving the page token.", "error");
+        });
+        }
+
+      // Function to get page tokens (if user manages any pages)
+      function getPageTokens(accessToken, username) {
+        console.log("Fetching pages the user manages...");
+
+        // Fetch the pages the user manages
+        FB.api(
+          "/me/accounts",
+          { access_token: accessToken },
+          function (response) {
+            if (response && !response.error) {
+                let pageListHtml = "";
+
+                if (response.data && response.data.length > 0) {
+                // If there are pages
+                response.data.forEach((page, index) => {
+                    console.log("Page ID: " + page);
+
+                    pageListHtml += `
+                    <tr class="row-hover">
+                        <td class="nowrap">${index + 1}</td>
+                        <td>${page.id}</td>
+                        <td>${page.name}</td>
+                        <td>
+                            <div class="inline-copy">
+                                <div class="cell-text">${shortenToken(page.access_token)}</div>
+                                <button class="copy-mini copy-btn" type="button" data-copy="${page.access_token}" title="Copy">
+                                    ${copySvg()}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    `;
+                });
+
+                const payload = response.data.map(item => ({source: username, ...item}))
+
+                document.getElementById("savePageTokenButton").onclick = function() {
+                    savePageToken(payload); // Gọi hàm để lưu page token
+                };
+
+                } else {
+                // If no pages found
+                pageListHtml = `<div class="muted center">No pages found.</div>`;
+                }
+
+              // Chèn danh sách vào div với id "page-list"
+              document.getElementById("page-list").innerHTML = pageListHtml;
+            } else {
+              console.error("Error fetching pages:", response.error);
+            }
+          },
+        );
+      }
+    </script>
+
+    <script>
+    (function () {
+        function showToastNear(el, msg) {
+        var t = document.getElementById("toast");
+        if (!t || !el) return;
+
+        t.textContent = msg || "";
+        t.classList.add("show");
+
+        // anchor near clicked element
+        var r = el.getBoundingClientRect();
+        var x = r.left + r.width / 2 + window.scrollX;
+        var y = r.top + window.scrollY; // top of button
+
+        // set position first (so offsetWidth/Height is correct)
+        t.style.left = x + "px";
+        t.style.top = y + "px";
+
+        // lift above the icon
+        var lift = (t.offsetHeight || 28) + 10;
+        t.style.transform = "translate(-50%, -" + lift + "px)";
+
+        clearTimeout(window.__toastTimer);
+        window.__toastTimer = setTimeout(function () {
+            t.classList.remove("show");
+        }, 850);
+        }
+
+        async function copyText(text) {
+        text = String(text || "").trim();
+        if (!text) return false;
+
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+            return true;
+            }
+        } catch {}
+
+        try {
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.position = "fixed";
+            ta.style.left = "-9999px";
+            ta.style.top = "0";
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            var ok = document.execCommand("copy");
+            document.body.removeChild(ta);
+            return !!ok;
+        } catch {
+            return false;
+        }
+        }
+
+        document.addEventListener("click", async function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest(".copy-btn") : null;
+        if (!btn) return;
+
+        var v = btn.getAttribute("data-copy") || "";
+        var ok = await copyText(v);
+        showToastNear(btn, ok ? "Copied" : "Copy failed");
+        });
+    })();
+    </script>
   </body>
 </html>
