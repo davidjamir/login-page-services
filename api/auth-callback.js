@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
   console.log(code);
   const tokenRes = await fetch(
-    "https://graph.facebook.com/v24.0/oauth/access_token?" +
+    "https://graph.facebook.com/v25.0/oauth/access_token?" +
       new URLSearchParams({
         client_id: process.env.FB_APP_ID,
         client_secret: process.env.FB_APP_SECRET,
