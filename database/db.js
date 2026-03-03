@@ -23,7 +23,7 @@ async function getDb() {
     await client.connect();
   }
 
-  _db = client.db(process.env.MONGODB_DB || "server-news");
+  _db = client.db(process.env.MONGODB_DB || "databases");
   return _db;
 }
 
